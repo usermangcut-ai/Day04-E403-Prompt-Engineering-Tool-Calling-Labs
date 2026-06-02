@@ -48,7 +48,20 @@ def build_chat_model(
             base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
             temperature=temperature,
         )
-    raise ValueError("This lab supports only the `google` and `ollama` providers.")
+    if provider == "openrouter":
+        from langchain_openai import ChatOpenAI
+
+        model = model_name or os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash")
+        api_key = os.getenv("OPEN_ROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+
+        return ChatOpenAI(
+            model=model,
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            temperature=temperature,
+            max_tokens=128,
+        )
+    raise ValueError("This lab supports `google`, `ollama`, and `openrouter` providers.")
 
 
 def extract_json_object(raw: Any) -> dict[str, Any]:
@@ -72,7 +85,10 @@ def judge_answer_with_llm(
     provider: str,
     model_name: str | None = None,
 ) -> dict[str, Any]:
-    model = build_chat_model(provider=provider, model_name=model_name, temperature=0.0)
+    judge_model_name = model_name
+    if provider == "openrouter" and model_name and "qwen" in model_name.lower():
+        judge_model_name = "google/gemini-2.5-flash"
+    model = build_chat_model(provider=provider, model_name=judge_model_name, temperature=0.0)
     prompt = f"""
 You are grading a student order-agent answer.
 Return JSON only with:
