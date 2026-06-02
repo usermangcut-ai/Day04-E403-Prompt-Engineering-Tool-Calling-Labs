@@ -5,6 +5,13 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Generated artifacts
+artifacts/orders/
+artifacts/*.json
+build/
+*.egg-info/
+dist/
+
 # Keep the student lab package lean
 solution/
 solutions/
